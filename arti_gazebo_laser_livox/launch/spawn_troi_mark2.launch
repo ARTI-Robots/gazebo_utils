@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!--<node pkg="tf" type="static_transform_publisher" name="map_odom_static_transform" args="0 0 0 0 0 0 /test1 /test2 100"/>-->
+
+    <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="paused" value="false"/>
+        <!--<arg name="world_name" value="$(find arti_troi_gazebo)/worlds/testworld_follower.world"/>-->
+        <!--<arg name="world_name" value="$(find arti_troi_gazebo)/worlds/testworld_larni_demo2_move_plugin_test2.world"/>-->
+        <arg name="world_name" value="$(find arti_gazebo_laser_livox)/worlds/livox_laser_debug2.world"/>
+        <arg name="gui" value="false"/>
+        <!-- more default parameters can be changed here -->
+    </include>
+
+    <node name="gazebo_gui" pkg="gazebo_ros" type="gzclient" respawn="false" output="screen"/>
+
+
+    <!-- Spawning the robot -->
+    <!-- Convert an xacro and put on parameter server -->
+    <param name="robot_description" command="$(find xacro)/xacro.py $(find arti_troi_mark2)/urdf/arti_troi_mark2_standalone.urdf.xacro" />
+    <!--<param name="robot_description" command="$(find xacro)/xacro.py $(find arti_troi_gazebo)/urdf/simple_standalone.urdf.xacro" />-->
+    <!-- Spawn a robot into Gazebo -->
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-param robot_description -urdf -model troi -x -1.0 -y 0 -z 0.15" />
+
+
+    <!-- load the joint state publisher GUI -->
+    <arg name="load_joint_state_publisher" default="true"/>
+    <arg name="joint_control_topic" default="/troi/joint_states"/>
+
+    <!-- topic for gzplugin_joint_state_client -->
+    <rosparam param="joint_state_control_topic" subst_value="true">$(arg joint_control_topic)</rosparam>
+    <!-- topic for gzplugin_joint_state_publisher -->
+    <rosparam param="publish_joint_states_topic">/joint_states</rosparam>
+
+
+    <!-- converts joint states to TF transforms -->
+    <node name="robot_state_publisher2" pkg="robot_state_publisher" type="robot_state_publisher" respawn="false" output="screen">
+        <remap from="/joint_states" to="/simple_model/joint_states" />
+    </node>
+
+
+    <include file="$(find arti_troi_gazebo)/launch/joint_controller_manager.launch">
+    </include>
+
+    <include file="$(find arti_troi_gazebo)/launch/joint_control_cmd_translator.launch">
+    </include>
+
+    <!-- Launch VESC-controller-mockup -->
+    <include file="$(find arti_troi_gazebo)/launch/launch_troi_sim_without_gazebo.launch">
+    </include>
+
+
+    <!-- Convert the point cloud from the camera in Gazebo to a 2D laserscan -->
+    <!--
+    Uncommented, otherwise there will be two nodes publishing the same laserscan
+    <include file="$(find arti_troi_launch)/launch/hardware/point_cloud_to_laser_scan.launch">
+    </include>-->
+
+    <!-- Publish Gazebo-ground-truth-frame in tf-tree and publish relative operator pose -->
+    <include file="$(find arti_troi_gazebo_postler)/launch/operator_groundtruth_trajectory.launch">
+    </include>
+
+    <node name="rviz" pkg="rviz" type="rviz" respawn="false" output="screen">
+    </node>
+
+</launch>
