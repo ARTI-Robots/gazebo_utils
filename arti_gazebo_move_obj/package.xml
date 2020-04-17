@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>arti_gazebo_move_obj</name>
+  <version>1.0.0</version>
+  <description>This package contains a Gazebo-plugin which is used to move the position of an object inside the simulation.</description>
+
+  <maintainer email="m.stradner@arti-robots.com">Michael Stradner</maintainer>
+
+  <author email="a.buchegger@arti-robots.com">Alexander Buchegger</author>
+  <author email="m.stradner@arti-robots.com">Michael Stradner</author>
+
+  <license>Apache</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>gazebo_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>tf</depend>
+
+  <export>
+  </export>
+</package>

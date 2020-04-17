@@ -23,7 +23,7 @@
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <gazebo_plugins/ray_data.h>
+#include <arti_gazebo_laser_livox/ray_data.h>
 
 namespace livox
 {

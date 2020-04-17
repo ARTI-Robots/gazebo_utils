@@ -1,0 +1,156 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="MRS1000">
+  <xacro:property name="M_PI" value="3.14159265359" />
+  <xacro:macro name="MRS1000" params="parent:=base_link name:=mrs1000 topic:=/mrs1000_points hz:=12.5 lasers:=4 samples:=1100 collision_range:=0.08 min_range:=0.08 max_range:=64.0 noise:=0.008 min_angle:=-2.4 max_angle:=2.4 length:=0.15 width:=0.15 height:=0.0926 mass:=1.2 gpu:=false">
+
+    <!-- Because I can't assign two different colors in one link inside Gazebo, I have to split the MRS1000 up into a lower and an upper body -->
+
+    <!-- Add link with lower part of the MRS1000 -->
+    <link name="${name}">
+      <inertial>
+        <mass value="${mass}" />
+        <origin xyz="0 0 -0.026" />
+        <!-- Inertial for a cuboid -->
+        <inertia ixx="${1.0 / 12.0 * mass * (width * width + height * height)}" ixy="0.0" ixz="0.0"
+                 iyy="${1.0 / 12.0 * mass * (length * length + height * height)}" iyz="0.0"
+                 izz="${1.0 / 12.0 * mass * (length * length + width * width)}" />
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" />
+        <geometry>
+          <mesh filename="package://arti_gazebo_sick_mrs1000/meshes/sick_mrs1000_lower_part_bin.stl" />
+        </geometry>
+        <material name="light_grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="${name}_lower_base_mount_joint" type="fixed">
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <parent link="${parent}"/>
+      <child link="${name}"/>
+    </joint>
+
+    <gazebo reference="${name}">
+      <material>Gazebo/Grey</material>
+    </gazebo>
+
+    <!-- Add link with upper part of the MRS1000 -->
+    <link name="${name}_body">
+      <inertial>
+        <mass value="0.01" />
+        <origin xyz="0 0 -0.026" />
+        <!-- Inertial for a cuboid -->
+        <inertia ixx="${1.0 / 12.0 * 0.01 * (width * width + height * height)}" ixy="0.0" ixz="0.0"
+                 iyy="${1.0 / 12.0 * 0.01 * (length * length + height * height)}" iyz="0.0"
+                 izz="${1.0 / 12.0 * 0.01 * (length * length + width * width)}" />
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" />
+        <geometry>
+          <mesh filename="package://arti_gazebo_sick_mrs1000/meshes/sick_mrs1000_upper_part_bin.stl" />
+        </geometry>
+        <material name="grey">
+          <color rgba="0.19 0.19 0.19 1"/>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="${name}_upper_base_mount_joint" type="fixed">
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <parent link="${parent}"/>
+      <child link="${name}_body"/>
+    </joint>
+
+    <gazebo reference="${name}_body">
+      <material>Gazebo/Black</material>
+    </gazebo>
+
+
+    <!-- Add laser plugin for the MRS1000 -->
+    <gazebo reference="${name}">
+      <xacro:if value="${gpu}">
+        <sensor type="gpu_ray" name="${name}-link">
+          <pose>0 0 0 0 0 0</pose>
+          <visualize>false</visualize>
+          <update_rate>${hz}</update_rate>
+          <ray>
+            <scan>
+              <horizontal>
+                <samples>${samples}</samples>
+                <resolution>1</resolution>
+                <min_angle>${min_angle}</min_angle>
+                <max_angle>${max_angle}</max_angle>
+              </horizontal>
+              <vertical>
+                <samples>${lasers}</samples>
+                <resolution>1</resolution>
+                <min_angle>-${3.75*M_PI/180.0}</min_angle>
+                <max_angle> ${3.75*M_PI/180.0}</max_angle>
+              </vertical>
+            </scan>
+            <range>
+              <min>${collision_range}</min>
+              <max>${max_range+1}</max>
+              <resolution>0.001</resolution>
+            </range>
+            <noise>
+              <type>gaussian</type>
+              <mean>0.0</mean>
+              <stddev>0.0</stddev>
+            </noise>
+          </ray>
+          <plugin name="gazebo_ros_laser_controller" filename="libgazebo_ros_velodyne_gpu_laser.so">
+            <topicName>${topic}</topicName>
+            <frameName>${name}</frameName>
+            <min_range>${min_range}</min_range>
+            <max_range>${max_range}</max_range>
+            <gaussianNoise>${noise}</gaussianNoise>
+          </plugin>
+        </sensor>
+      </xacro:if>
+      <xacro:unless value="${gpu}">
+        <sensor type="ray" name="${name}-link">
+          <pose>0 0 0 0 0 0</pose>
+          <visualize>false</visualize>
+          <update_rate>${hz}</update_rate>
+          <ray>
+            <scan>
+              <horizontal>
+                <samples>${samples}</samples>
+                <resolution>1</resolution>
+                <min_angle>${min_angle}</min_angle>
+                <max_angle>${max_angle}</max_angle>
+              </horizontal>
+              <vertical>
+                <samples>${lasers}</samples>
+                <resolution>1</resolution>
+                <min_angle>-${3.75*M_PI/180.0}</min_angle>
+                <max_angle> ${3.75*M_PI/180.0}</max_angle>
+              </vertical>
+            </scan>
+            <range>
+              <min>${collision_range}</min>
+              <max>${max_range+1}</max>
+              <resolution>0.001</resolution>
+            </range>
+            <noise>
+              <type>gaussian</type>
+              <mean>0.0</mean>
+              <stddev>0.0</stddev>
+            </noise>
+          </ray>
+          <plugin name="gazebo_ros_laser_controller" filename="libgazebo_ros_velodyne_laser.so">
+            <topicName>${topic}</topicName>
+            <frameName>${name}</frameName>
+            <min_range>${min_range}</min_range>
+            <max_range>${max_range}</max_range>
+            <gaussianNoise>${noise}</gaussianNoise>
+          </plugin>
+        </sensor>
+      </xacro:unless>
+    </gazebo>
+
+  </xacro:macro>
+</robot>

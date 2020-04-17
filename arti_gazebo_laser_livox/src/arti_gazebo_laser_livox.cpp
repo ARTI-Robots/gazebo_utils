@@ -3,7 +3,7 @@
 #include <tf/tf.h>
 #include <gazebo_plugins/gazebo_ros_utils.h>
 #include <sensor_msgs/point_cloud_conversion.h>
-#include <gazebo_plugins/arti_gazebo_laser_livox.h>
+#include <arti_gazebo_laser_livox/arti_gazebo_laser_livox.h>
 //#include <chrono>
 
 namespace gazebo
